@@ -11,7 +11,7 @@
 void resizeTable();
 
 typedef struct {
-	char symbol[20];
+	char symbol[100];
 	int address;
 } Entry;
 

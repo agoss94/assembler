@@ -10,19 +10,19 @@
 char* destCode(char* s) {
 	if(s == NULL) {
 		return "000";
-	} else if (strcmp(s, "M") == 0) {
+	} else if (strchr(s, 'M') != NULL && strchr(s, 'A') == NULL && strchr(s, 'D') == NULL) {
 		return "001";
-	} else if (strcmp(s, "D") == 0) {
+	} else if (strchr(s, 'M') == NULL && strchr(s, 'A') == NULL && strchr(s, 'D') != NULL) {
 		return "010";
-	} else if (strcmp(s, "DM") == 0) {
+	} else if (strchr(s, 'M') != NULL && strchr(s, 'A') == NULL && strchr(s, 'D') != NULL) {
 		return "011";
-	} else if (strcmp(s, "A") == 0) {
+	} else if (strchr(s, 'M') == NULL && strchr(s, 'A') != NULL && strchr(s, 'D') == NULL) {
 		return "100";
-	} else if (strcmp(s, "AM") == 0) {
+	} else if (strchr(s, 'M') != NULL && strchr(s, 'A') != NULL && strchr(s, 'D') == NULL) {
 		return "101";
-	} else if (strcmp(s, "AD") == 0) {
+	} else if (strchr(s, 'M') == NULL && strchr(s, 'A') != NULL && strchr(s, 'D') != NULL) {
 		return "110";
-	} else if (strcmp(s, "ADM") == 0) {
+	} else if (strchr(s, 'M') != NULL && strchr(s, 'A') != NULL && strchr(s, 'D') != NULL) {
 		return "111";
 	} else {
 		return NULL;

@@ -1,7 +1,7 @@
 /*
  ============================================================================
  Name        : assembler.c
- Author      : 
+ Author      : Andreas Goss
  Version     :
  Copyright   : Your copyright notice
  Description : Hello World in C, Ansi-style
@@ -17,79 +17,7 @@
 #include "parser.h"
 #include "code.h"
 
-void initDefaultMappings();
-
 int nextRegister = 16;
-
-int main(int argc, char **argv) {
-	initTable();
-	initDefaultMappings();
-
-	//Build symbol table.
-	FILE *file = fopen(argv[1], "r");
-	setFile(file);
-	while (hasMoreLines()) {
-		advance();
-		if (instructionType() == L_INSTRUCTION) {
-			addEntry(symbol(), counter + 1);
-		}
-	}
-
-	//Reset file pointer
-	rewind(file);
-
-	//Name of output file.
-	char outputName[100];
-	sscanf(argv[1], "%[^.]s.asm", outputName);
-	strcat(outputName, ".hack");
-
-	FILE *output = fopen(outputName, "w");
-	//Finally read and parse file.
-
-	char oLine[20];
-	while (hasMoreLines()) {
-		advance();
-		if (instructionType() == A_INSTRUCTION) {
-			char address[16] = "000000000000000";
-			char binNumber[16] = "0";
-			if (contains(symbol())) {
-				itoa(getAddress(symbol()), binNumber, 2);
-			} else if (isdigit(symbol()[0])) {
-				int i = 0;
-				sscanf(symbol(), "%d", &i);
-				itoa(i, binNumber, 2);
-			} else {
-				addEntry(symbol(), nextRegister);
-				itoa(nextRegister, binNumber, 2);
-				nextRegister++;
-			}
-
-			int binLength = strlen(binNumber);
-			for (int j = binLength; j > 0; j--) {
-				address[14 - binLength + j] = binNumber[j-1];
-			}
-
-			fputs("0", output);
-			fputs(address, output);
-			fputs("\n", output);
-		} else if (instructionType() == C_INSTRUCTION) {
-			oLine[0] = '1';
-			oLine[1] = '1';
-			oLine[2] = '1';
-			oLine[3] = '\0';
-			strcat(oLine, destCode(dest()));
-			strcat(oLine, compCode(comp()));
-			strcat(oLine, jumpCode(jump()));
-			fputs(oLine, output);
-			fputs("\n", output);
-		}
-	}
-
-	freeTable();
-	fclose(file);
-	fclose(output);
-	return 0;
-}
 
 void initDefaultMappings() {
 	//Fill in symbol table with defaults
@@ -121,3 +49,70 @@ void initDefaultMappings() {
 	addEntry("KBD", 24576);
 }
 
+int main(int argc, char **argv) {
+	initTable();
+	initDefaultMappings();
+
+	//Build symbol table.
+	FILE *file = fopen(argv[1], "r");
+	setFile(file);
+
+	while (hasMoreLines()) {
+		advance();
+		if (instructionType() == L_INSTRUCTION) {
+			addEntry(symbol(), counter + 1);
+		}
+	}
+
+	setFile(file);
+
+	//Name of output file.
+	char outputName[100];
+	sscanf(argv[1], "%[^.]s.asm", outputName);
+	strcat(outputName, ".hack");
+
+	FILE *output = fopen(outputName, "w");
+
+	//Finally read and parse file.
+	while (hasMoreLines()) {
+		advance();
+		//Either A- or C-instruction
+		if (instructionType() == A_INSTRUCTION) {
+			char address[16] = "000000000000000";
+			char bin[16];
+			if (contains(symbol())) {
+				itoa(getAddress(symbol()), bin, 2);
+			} else if (isdigit(symbol()[0])) {
+				int i = 0;
+				sscanf(symbol(), "%d", &i);
+				itoa(i, bin, 2);
+			} else {
+				addEntry(symbol(), nextRegister);
+				itoa(nextRegister, bin, 2);
+				nextRegister++;
+			}
+
+			//Get binary number bin in address.
+			int binLength = strlen(bin);
+			for (int j = binLength; j > 0; j--) {
+				address[14 - binLength + j] = bin[j - 1];
+			}
+
+			//Write A-instruction to file.
+			fputs("0", output);
+			fputs(address, output);
+			fputs("\n", output);
+		} else if (instructionType() == C_INSTRUCTION) {
+			fputs("111", output);
+			fputs(compCode(comp()), output);
+			fputs(destCode(dest()), output);
+			fputs(jumpCode(jump()), output);
+			fputs("\n", output);
+		}
+	}
+
+	freeTable();
+	fclose(file);
+	fclose(output);
+	return 0;
+}
